@@ -86,7 +86,7 @@ def record_existing_clinics(model,lam):
 def solve_model_lam(this_model,lam):
     global Searched_dict
 
-    this_model.setObjective(lam*unserved_clients/scale_clients + (1-lam)*(-1*existing_sum_dist + b)/scale_distance, GRB.MAXIMIZE)
+    this_model.setObjective(lam*unserved_clients/scale_clients + (1-lam)*(-1*existing_sum_dist)/scale_distance, GRB.MAXIMIZE)
     this_model.optimize()   
 
     existing_sum_distance = existing_sum_dist.x
@@ -170,7 +170,6 @@ new_sum_dist = flmodel.addVar(vtype=GRB.CONTINUOUS, name="new_sum_dist") #Sum tr
 total_dist = flmodel.addVar(vtype=GRB.CONTINUOUS, name="total_sum_dist") #Sum travel distance for all clients
 unserved_clients = flmodel.addVar(vtype=GRB.CONTINUOUS, name="unserved_clients")
 z = flmodel.addVar(vtype=GRB.BINARY, name="z") #Indicator for whether bonus for unserved client distance is attained
-b = flmodel.addVar(vtype=GRB.CONTINUOUS, name="unserved_clients") #Bonus for unserved client distance
 reassigned_clients = flmodel.addVar(vtype=GRB.CONTINUOUS, name="reassigned_clients")
 reassigned_distance = flmodel.addVar(vtype=GRB.CONTINUOUS, name="reassigned_distance")
 
@@ -206,13 +205,6 @@ reassigned_client_const = flmodel.addConstr(xn.sum() == reassigned_clients)
 
 # Reassigned distance
 reassigned_distance_const = flmodel.addConstr(xn.prod(served_new_dist) == reassigned_distance)
-
- # Constraints for bonus that force bonus to activate properly
-large_num = 35000
-b_1 = flmodel.addConstr(b >= 0, name="b_1") #Implied and redundant
-b_2 = flmodel.addConstr(b >= A0 * unserved_clients - new_sum_dist, name="b_2") 
-b_3 = flmodel.addConstr(b <= large_num * z, name="b_3")
-b_4 = flmodel.addConstr(b <= A0 * unserved_clients - new_sum_dist + large_num*(1-z), name="b_4")
 
 ################
 ## Objective function
